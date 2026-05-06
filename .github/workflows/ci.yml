@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,27 +6,26 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          python-version: '3.11'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Install dependencies
+      - name: Build Docker image
         run: |
-          cd app
-          pip install -r requirements.txt
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/azure-devops-platform:latest ./app
 
-      - name: Run Docker build
+      - name: Push Docker image
         run: |
-          cd app
-          docker build -t azure-devops-platform .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/azure-devops-platform:latest
 
-      - name: Success message
-        run: echo "CI pipeline completed successfully"
+      - name: Pipeline completed
+        run: echo "Docker image pushed successfully"
